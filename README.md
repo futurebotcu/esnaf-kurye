@@ -22,21 +22,47 @@ Yerel esnaflar ile kuryeler arasinda canli teslimat yonetimi saglayan full-stack
 
 ## Kurulum
 
+### Gereksinimler
+
+- Node.js 20+
+- PostgreSQL 15+ (PostGIS extension)
+- Flutter SDK 3.x
+- Google Maps API Key
+
 ### Backend
-- `backend/.env.example` -> `backend/.env` kopyala
+
 ```bash
 cd backend
-npm ci
-node src/migrations/run.js
-npm run dev
+cp .env.example .env
+# .env dosyasini duzenleyin (JWT_SECRET, DB_PASSWORD, WEATHER_API_KEY)
+npm install
+npm run migrate
+npm start
 ```
 
+**Onemli:** `JWT_SECRET` ayarlanmazsa sunucu baslamaz.
+
 ### Flutter
+
 ```bash
 cd flutter_app
 flutter pub get
-flutter run
+
+# Web icin: flutter_app/web/index.html dosyasinda
+# YOUR_GOOGLE_MAPS_API_KEY yerine gercek API key yazin
+
+flutter run -d chrome   # Web
+flutter run              # Mobil
 ```
+
+### Google Maps API Key
+
+1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) adresine gidin
+2. Maps JavaScript API ve Maps SDK for Android/iOS etkinlestirin
+3. API key olusturun
+4. `flutter_app/web/index.html` dosyasinda `YOUR_GOOGLE_MAPS_API_KEY` yerine yazin
+5. Android: `android/app/src/main/AndroidManifest.xml`
+6. iOS: `ios/Runner/AppDelegate.swift`
 
 ## Test ve kalite
 ```bash
