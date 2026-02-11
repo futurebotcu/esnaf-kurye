@@ -35,35 +35,25 @@ npm run dev
 ```bash
 cd flutter_app
 flutter pub get
-flutter run -d chrome   # Web
-flutter run              # Mobil
+flutter run
 ```
 
-## Testler
+## Test ve kalite
 ```bash
-cd backend && npm test
-cd flutter_app && flutter test
-cd flutter_app && flutter analyze
+cd backend
+npm test
+npm audit --audit-level=high
+cd ../flutter_app
+flutter analyze --no-fatal-infos
+flutter test
 ```
 
 ## Guvenlik
 - `.env` dosyalari `.gitignore` ile korunur ve asla commit edilmez.
+- `backend/.env.example` sablondur, gercek deger icermez.
 - `JWT_SECRET` ayarlanmadan sunucu baslamaz.
-- Production'da `CORS_ORIGINS` zorunludur.
-- Pre-commit hook secret leak'leri engeller.
+- Production'da `CORS_ORIGINS` ayarlanmalidir.
+- Pre-commit hook staged dosyalarda olasi secret leak pattern'lerini bloklar.
 
 ## CI/CD
-GitHub Actions: `.github/workflows/ci.yml`
-
-## API Endpointleri
-| Method | Endpoint | Aciklama |
-|--------|----------|----------|
-| POST | /api/auth/kayit | Yeni kullanici kaydi |
-| POST | /api/auth/giris | Giris |
-| GET | /api/esnaf/profil | Esnaf profili |
-| POST | /api/esnaf/cagri | Teslimat cagrisi olustur |
-| GET | /api/kurye/aktif-cagri | Kurye aktif cagrisi |
-| POST | /api/kurye/cagri-kabul | Cagri kabul et |
-| GET | /api/musteri/cevredeki-esnaflar | 5km icindeki esnaflar |
-| GET | /api/musteri/aktif-cagri | Musteri aktif cagrisi |
-| POST | /api/musteri/puanla | Teslimat puanla |
+GitHub Actions workflow: `.github/workflows/ci.yml`
