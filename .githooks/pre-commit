@@ -1,0 +1,92 @@
+#!/bin/sh
+# ============================================
+# PRE-COMMIT HOOK: Secret Leak Prevention
+# ============================================
+# Devre disi birakmak icin:
+#   Tek seferlik:  git commit --no-verify
+#   Kalici:        git config core.hooksPath .git/hooks
+#   Geri al:       git config core.hooksPath .githooks
+# ============================================
+
+echo "[pre-commit] Secret taramasi baslatildi..."
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null)
+if [ -z "$STAGED_FILES" ]; then
+  echo "[pre-commit] Staged dosya yok, geciliyor."
+  exit 0
+fi
+
+BLOCKED=0
+
+for FILE in $STAGED_FILES; do
+
+  # Skip: bilinen safe dosyalar (pattern iceren ama secret olmayan)
+  case "$FILE" in
+    .githooks/pre-commit) continue ;;
+    .github/workflows/ci.yml) continue ;;
+    backend/.env.example) continue ;;
+    README.md) continue ;;
+    */README.md) continue ;;
+    backend/tests/*) continue ;;
+  esac
+
+  # .env dosyalari direkt blockla (.env.example haric)
+  case "$FILE" in
+    .env|*.env|*/.env)
+      echo ""; echo "!! BLOCKED: .env staged: $FILE"; BLOCKED=1; continue ;;
+  esac
+  case "$FILE" in
+    .env.*|*.env.*|*/.env.*)
+      case "$FILE" in
+        *.env.example|*/.env.example) ;; # skip example
+        *) echo ""; echo "!! BLOCKED: .env staged: $FILE"; BLOCKED=1; continue ;;
+      esac ;;
+  esac
+
+  # Staged dosyanin icerigini al (worktree degil, index versiyonu)
+  CONTENT=$(git show ":$FILE" 2>/dev/null) || continue
+
+  # Her pattern icin tara
+  for PAT in "AIza" "AKIA" "ghp_" "dev_secret_key" "JWT_SECRET=" "postgres://"; do
+    HITS=$(echo "$CONTENT" | grep -n "$PAT" 2>/dev/null) || true
+    if [ -n "$HITS" ]; then
+      echo ""
+      echo "!! BLOCKED: '$PAT' in $FILE"
+      echo "$HITS" | head -3
+      BLOCKED=1
+    fi
+  done
+
+  # password= (whitelist: placeholder/env-okuma/config)
+  PW=$(echo "$CONTENT" | grep -ni "password=" 2>/dev/null \
+    | grep -vi "your_\|_here\|ci_test\|not_real\|example\|placeholder\|process\.env\|DB_PASSWORD\|db_password" \
+    2>/dev/null) || true
+  if [ -n "$PW" ]; then
+    echo ""
+    echo "!! BLOCKED: 'password=' in $FILE"
+    echo "$PW" | head -3
+    BLOCKED=1
+  fi
+
+  # sk- (en az 20 char — kisa degisken adlarini atlama)
+  SK=$(echo "$CONTENT" | grep -nE "sk-[A-Za-z0-9]{20}" 2>/dev/null) || true
+  if [ -n "$SK" ]; then
+    echo ""
+    echo "!! BLOCKED: 'sk-' key in $FILE"
+    echo "$SK" | head -3
+    BLOCKED=1
+  fi
+
+done
+
+if [ "$BLOCKED" -eq 1 ]; then
+  echo ""
+  echo "============================================"
+  echo "pre-commit BLOCKED: potential secret leak"
+  echo "False positive ise: git commit --no-verify"
+  echo "============================================"
+  exit 1
+fi
+
+echo "[pre-commit] Temiz — secret bulunamadi."
+exit 0

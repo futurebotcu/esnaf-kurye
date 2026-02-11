@@ -1,0 +1,10 @@
+node_modules/
+*.log
+
+# Environment files — secret sızıntısını önle
+.env
+.env.*
+*.local
+
+# .env.example şablondur, commit edilmeli
+!.env.example

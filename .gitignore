@@ -1,0 +1,15 @@
+# Environment files — hiçbir .env dosyası commit edilmemeli
+.env
+.env.*
+*.local
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+
+# IDE
+.idea/
+.vscode/
+*.iml
