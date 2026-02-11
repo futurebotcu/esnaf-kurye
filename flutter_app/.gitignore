@@ -46,3 +46,11 @@ app.*.map.json
 
 # Local machine paths — commit edilmemeli
 **/android/local.properties
+
+# Generated plugin registrants — flutter pub get her makinede yeniden uretir
+**/GeneratedPluginRegistrant.*
+**/generated_plugin_registrant.*
+**/generated_plugins.cmake
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/ephemeral/
