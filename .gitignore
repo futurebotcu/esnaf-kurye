@@ -13,3 +13,7 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
+# stray artifacts accidentally created during copy/paste
+e --continue
+tatus
+naf kurye*
